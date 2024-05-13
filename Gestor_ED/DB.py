@@ -1,6 +1,8 @@
 import pymysql
 from Administrativo import Administrativo
 from General import General
+from Almacen_info import AlmacenInfo
+from Espacio_deportivo import EspacioDeportivo
 
 class DB:
     def __init__(self, host, user, password, database):
@@ -63,5 +65,63 @@ class DB:
         except pymysql.Error as error:
             print("Error al registrar general:", error)
 
-# falta añadir las funciones para hacer el CRUD en las tablas y falta crear esas tablas,
-# lo cual peudo realizarlo desde la consola de mariadb
+    def registrar_espacio_deportivo(self, espacio_deportivo: EspacioDeportivo):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = ("INSERT INTO Espacios_deportivos (id_espacio, nombre, reglamento, capacidad) "
+                   "VALUES (%s, %s, %s, %s)")
+            cursor.execute(sql, (espacio_deportivo.id, espacio_deportivo.nombre, espacio_deportivo.reglamento,
+                                 espacio_deportivo.capacidad))
+
+            self.connection.commit()
+
+            print("Registro de espacio deportivo creado exitosamente.")
+
+        except pymysql.Error as error:
+            print("Error al registrar espacio deportivo:", error)
+
+    def obtener_administrativos(self):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "SELECT * FROM Administrativos"
+            cursor.execute(sql)
+
+            for row in cursor.fetchall():
+                documento, nombre, apellido, correo, contrasena = row
+                administrativo = Administrativo(documento, nombre, apellido, correo, contrasena)
+                AlmacenInfo.Administrativos.append(administrativo)
+
+        except pymysql.Error as error:
+            print("Error al obtener administrativos:", error)
+
+    def obtener_generales(self):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "SELECT * FROM Generales"
+            cursor.execute(sql)
+
+            for row in cursor.fetchall():
+                documento, nombre, apellido, correo, contrasena = row
+                general = General(documento, nombre, apellido, correo, contrasena)
+                AlmacenInfo.Generales.append(general)
+
+        except pymysql.Error as error:
+            print("Error al obtener generales:", error)
+
+    def obtener_espacios_deportivos(self):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "SELECT * FROM Espacios_deportivos"
+            cursor.execute(sql)
+
+            for row in cursor.fetchall():
+                id_espacio, nombre, reglamento, capacidad = row
+                espacio = EspacioDeportivo(id_espacio, nombre, reglamento, capacidad)
+                AlmacenInfo.EspaciosDeportivos.append(espacio)
+
+        except pymysql.Error as error:
+            print("Error al obtener espacios deportivos:", error)

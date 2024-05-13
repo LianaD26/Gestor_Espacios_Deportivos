@@ -1,5 +1,7 @@
 import tkinter as tk
 from Gestor_inicio_sesion import GestorInicioSesion
+from Gestor_espacio_deportivo import GestorED
+from Gestor_reserva import GestorReserva
 
 class Interfaz:
     def __init__(self, db):
@@ -8,14 +10,13 @@ class Interfaz:
         self.ventana.title("Inicio de Sesión")
         self.ventana.geometry("300x200")
 
-        # Crear el título
         self.label_titulo = tk.Label(self.ventana, text="Bienvenido")
         self.label_titulo.pack()
 
-        # Crear los botones de Iniciar Sesión y Registrarse
+        # botones de Iniciar Sesión y Registrarse
         self.crear_botones_inicio()
 
-        # Centrar la ventana en la pantalla
+        # ventana general en la pantalla
         self.ventana.update_idletasks()
         self.width = self.ventana.winfo_width()
         self.height = self.ventana.winfo_height()
@@ -69,31 +70,93 @@ class Interfaz:
         entrada_contr = tk.Entry(ventana_inicio)
         entrada_contr.pack()
 
-        def iniciar_general():
+        def iniciar_admin():
             documento = entrada_documento.get()
             ctr = entrada_contr.get()
 
             if documento and ctr:
-                GestorInicioSesion.iniciar_sesion_administrativo(int(documento), ctr)
                 ventana_inicio.destroy()
-                self.limpiar_ventana()
-                boton_agregar_espacio = tk.Button(self.ventana, text="Agregar espacio deportivo",
+                if GestorInicioSesion.iniciar_sesion_administrativo(int(documento), ctr):
+                    self.limpiar_ventana()
+                    boton_agregar_espacio = tk.Button(self.ventana, text="Agregar espacio deportivo",
                                                       command=self.agregar_espacio_deportivo)
-                boton_agregar_espacio.pack()
-                boton_eliminar_espacio = tk.Button(self.ventana, text="Eliminar espacio deportivo",
-                                                  command=self.eliminar_espacio_deportivo)
-                boton_eliminar_espacio.pack()
+                    boton_agregar_espacio.pack()
+                    boton_eliminar_espacio = tk.Button(self.ventana, text="Eliminar espacio deportivo",
+                                                       command=self.eliminar_espacio_deportivo)
+                    boton_eliminar_espacio.pack()
+                else:
+                    mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
+                    mensaje_no_coincide.pack()
+
             else:
                 # Mostrar un mensaje de error si los campos están vacíos
                 mensaje_error = tk.Label(ventana_inicio, text="Por favor, complete todos los campos.", fg="red")
                 mensaje_error.pack()
 
         # Crear el botón de registro
-        boton_iniciar_sesion = tk.Button(ventana_inicio, text="Iniciar sesión", command=iniciar_general)
+        boton_iniciar_sesion = tk.Button(ventana_inicio, text="Iniciar sesión", command=iniciar_admin)
         boton_iniciar_sesion.pack()
 
+        ventana_inicio.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_inicio.update_idletasks()
+        x = (ventana_inicio.winfo_screenwidth() // 2) - (ventana_inicio.winfo_width() // 2)
+        y = (ventana_inicio.winfo_screenheight() // 2) - (ventana_inicio.winfo_height() // 2)
+        ventana_inicio.geometry('+{}+{}'.format(x, y))
+
     def agregar_espacio_deportivo(self):
-        pass
+        # id espacio, nombre, reglamento, capacidad
+        ventana_ED = tk.Toplevel(self.ventana)
+        ventana_ED.title("Agregar espacio deportivo")
+
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_ED, text="Id espacio:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_ED)
+        entrada_id.pack()
+
+        label_espacio = tk.Label(ventana_ED, text="Nombre espacio:")
+        label_espacio.pack()
+        entrada_nombre = tk.Entry(ventana_ED)
+        entrada_nombre.pack()
+
+        label_reglamento = tk.Label(ventana_ED, text="Reglamento:")
+        label_reglamento.pack()
+        entrada_reglamento = tk.Entry(ventana_ED)
+        entrada_reglamento.pack()
+
+        label_capacidad = tk.Label(ventana_ED, text="Capacidad:")
+        label_capacidad.pack()
+        entrada_capacidad = tk.Entry(ventana_ED)
+        entrada_capacidad.pack()
+
+        def registrar_espacio():
+            id_espacio = entrada_id.get()
+            nombre = entrada_nombre.get()
+            reglamento = entrada_reglamento.get()
+            capacidad = entrada_capacidad.get()
+
+            if id_espacio and nombre and reglamento and capacidad:
+                GestorED.agregar_espacio_deportivo(int(id_espacio), nombre, reglamento, int(capacidad), self.db)
+                ventana_ED.destroy()
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_ED, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de agregar
+        boton_registrar = tk.Button(ventana_ED, text="Agregar", command=registrar_espacio)
+        boton_registrar.pack()
+
+        ventana_ED.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_ED.update_idletasks()
+        x = (ventana_ED.winfo_screenwidth() // 2) - (ventana_ED.winfo_width() // 2)
+        y = (ventana_ED.winfo_screenheight() // 2) - (ventana_ED.winfo_height() // 2)
+        ventana_ED.geometry('+{}+{}'.format(x, y))
+
 
     def eliminar_espacio_deportivo(self):
         pass
@@ -118,18 +181,21 @@ class Interfaz:
             ctr = entrada_contr.get()
 
             if documento and ctr:
-                GestorInicioSesion.iniciar_sesion_general(int(documento), ctr)
                 ventana_inicio.destroy()
-                self.limpiar_ventana()
-                boton_agregar_reserva = tk.Button(self.ventana, text="Agregar espacio deportivo",
-                                                  command=self.agregar_reserva)
-                boton_agregar_reserva.pack()
-                boton_mostrar_reservas = tk.Button(self.ventana, text="Agregar espacio deportivo",
-                                                  command=self.mostrar_reservas)
-                boton_mostrar_reservas.pack()
-                boton_eliminar_reserva = tk.Button(self.ventana, text="Agregar espacio deportivo",
-                                                  command=self.eliminar_reserva)
-                boton_eliminar_reserva.pack()
+                if GestorInicioSesion.iniciar_sesion_general(int(documento), ctr):
+                    self.limpiar_ventana()
+                    boton_agregar_reserva = tk.Button(self.ventana, text="Agregar reserva",
+                                                      command=self.agregar_reserva)
+                    boton_agregar_reserva.pack()
+                    boton_mostrar_reservas = tk.Button(self.ventana, text="Eliminar reserva",
+                                                      command=self.mostrar_reservas)
+                    boton_mostrar_reservas.pack()
+                    boton_eliminar_reserva = tk.Button(self.ventana, text="Mostrar reservas",
+                                                      command=self.eliminar_reserva)
+                    boton_eliminar_reserva.pack()
+                else:
+                    mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
+                    mensaje_no_coincide.pack()
 
             else:
                 # Mostrar un mensaje de error si los campos están vacíos
@@ -139,6 +205,14 @@ class Interfaz:
         # Crear el botón de registro
         boton_iniciar_sesion = tk.Button(ventana_inicio, text="Iniciar sesión", command=iniciar_general)
         boton_iniciar_sesion.pack()
+
+        ventana_inicio.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_inicio.update_idletasks()
+        x = (ventana_inicio.winfo_screenwidth() // 2) - (ventana_inicio.winfo_width() // 2)
+        y = (ventana_inicio.winfo_screenheight() // 2) - (ventana_inicio.winfo_height() // 2)
+        ventana_inicio.geometry('+{}+{}'.format(x, y))
 
     def agregar_reserva(self):
         pass
@@ -199,6 +273,14 @@ class Interfaz:
         boton_registrar = tk.Button(ventana_registro, text="Registrar", command=registrar_administrador)
         boton_registrar.pack()
 
+        ventana_registro.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_registro.update_idletasks()
+        x = (ventana_registro.winfo_screenwidth() // 2) - (ventana_registro.winfo_width() // 2)
+        y = (ventana_registro.winfo_screenheight() // 2) - (ventana_registro.winfo_height() // 2)
+        ventana_registro.geometry('+{}+{}'.format(x, y))
+
     def registrarse_general(self):
         print("Registrarse como general...")
         ventana_registro = tk.Toplevel(self.ventana)
@@ -249,6 +331,14 @@ class Interfaz:
         # Crear el botón de registro
         boton_registrar = tk.Button(ventana_registro, text="Registrar", command=registrar_administrador)
         boton_registrar.pack()
+
+        ventana_registro.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_registro.update_idletasks()
+        x = (ventana_registro.winfo_screenwidth() // 2) - (ventana_registro.winfo_width() // 2)
+        y = (ventana_registro.winfo_screenheight() // 2) - (ventana_registro.winfo_height() // 2)
+        ventana_registro.geometry('+{}+{}'.format(x, y))
 
     def mostrar_inicio(self):
         # limpiar la ventana de todos los widgets
