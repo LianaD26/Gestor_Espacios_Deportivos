@@ -1,5 +1,5 @@
 from Almacen_info import AlmacenInfo
-from DB import DB
+
 
 class GestorReserva:
     @classmethod
