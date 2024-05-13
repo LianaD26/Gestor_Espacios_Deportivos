@@ -1,5 +1,6 @@
 import pymysql
 from Administrativo import Administrativo
+from General import General
 
 class DB:
     def __init__(self, host, user, password, database):
@@ -47,16 +48,17 @@ class DB:
         except pymysql.Error as error:
             print("Error al registrar administrativo:", error)
 
-    def registrar_general(self, nombre, apellido):
+    def registrar_general(self, general: General):
         try:
             cursor = self.connection.cursor()
 
-            sql = "INSERT INTO generales (nombre, apellido) VALUES (%s, %s)"
-            cursor.execute(sql, (nombre, apellido))
+            sql = ("INSERT INTO Generales (documento, nombre, apellido, correo, contraseña) "
+                   "VALUES (%s, %s, %s, %s, %s)")
+            cursor.execute(sql, (general.documento, general.nombre, general.apellido, general.correo, general.contraseña))
 
             self.connection.commit()
 
-            print("Registro general creado exitosamente.")
+            print("Registro de general creado exitosamente.")
 
         except pymysql.Error as error:
             print("Error al registrar general:", error)

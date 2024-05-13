@@ -1,31 +1,34 @@
 from DB import DB
 from Administrativo import Administrativo
+from Almacen_info import AlmacenInfo
+from General import General
 
 class GestorInicioSesion:
-    @classmethod
-    def iniciar_sesion_administrativo(cls):
-        print("Iniciar sesión como administrativo...")
-
-    @classmethod
-    def iniciar_sesion_general(cls):
-        print("Iniciar sesión como general...")
 
     @classmethod
     def registrar_administrativo(cls, documento: int, nombre: str, apellido: str, correo: str, contraseña: str, db):
-        print("Registrarse como administrativo...")
-        print(documento, nombre, apellido, correo, contraseña)
         admin = Administrativo(documento, nombre, apellido, correo, contraseña)
-        #db = DB(host="localhost", user="User1", password="passw2024", database="GestorED")
+        AlmacenInfo.Administrativos.append(admin)
         db.registrar_administrativo(admin)
 
     @classmethod
-    def registrar_general(cls):
+    def registrar_general(cls, documento: int, nombre: str, apellido: str, correo: str, contraseña: str, db):
         print("Registrarse como general...")
+        general = General(documento, nombre, apellido, correo, contraseña)
+        AlmacenInfo.Generales.append(general)
+        db.registrar_general(general)
 
-    # si inicia sesión que ese usuario exista en la base de datos
-    def verificar_administrativo(self):
-        pass
+    @classmethod
+    def iniciar_sesion_administrativo(cls, documento: int, ctr: str):
+        for i in AlmacenInfo.Administrativos:
+            if i.documento == documento and i.contraseña == ctr:
+                return True
+        return False
 
-    def verificar_general(self):
-        pass
+    @classmethod
+    def iniciar_sesion_general(cls, documento: int, ctr: str):
+        for i in AlmacenInfo.Generales:
+            if i.documento == documento and i.contraseña == ctr:
+                return True
+        return False
 
