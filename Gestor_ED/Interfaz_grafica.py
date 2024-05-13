@@ -213,15 +213,23 @@ class Interfaz:
                 ventana_inicio.destroy()
                 if GestorInicioSesion.iniciar_sesion_general(int(documento), ctr):
                     self.limpiar_ventana()
-                    boton_agregar_reserva = tk.Button(self.ventana, text="Reserva espacios deportivos",
-                                                      command=self.gestionar_reservas_ED)
-                    boton_agregar_reserva.pack()
-                    boton_mostrar_reservas = tk.Button(self.ventana, text="Reserva instructor",
-                                                      command=self.gestionar_reservas_instructor)
+                    boton_reserva_ED = tk.Button(self.ventana, text="Reserva espacios deportivos",
+                                                      command= lambda: self.gestionar_reservas_ED(int(documento)))
+                    boton_reserva_ED.pack()
+                    boton_reserva_instructor = tk.Button(self.ventana, text="Reserva instructor",
+                                                      command= lambda: self.gestionar_reservas_instructor(int(documento)))
+                    boton_reserva_instructor.pack()
+                    boton_reserva_equipamiento = tk.Button(self.ventana, text="Reserva equipamiento",
+                                                      command= lambda: self.gestionar_reservas_equipamiento(int(documento)))
+                    boton_reserva_equipamiento.pack()
+
+                    boton_mostrar_reservas = tk.Button(self.ventana, text="Mostrar mis reservas",
+                                                       command=lambda: self.mostrar_mis_reservas(int(documento)))
                     boton_mostrar_reservas.pack()
-                    boton_eliminar_reserva = tk.Button(self.ventana, text="Reserva equipamiento",
-                                                      command=self.gestionar_reservas_equipamiento)
+                    boton_eliminar_reserva = tk.Button(self.ventana, text="Eliminar reserva",
+                                                       command=lambda: self.eliminar_reserva(int(documento)))
                     boton_eliminar_reserva.pack()
+
                 else:
                     mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
                     mensaje_no_coincide.pack()
@@ -243,7 +251,7 @@ class Interfaz:
         y = (ventana_inicio.winfo_screenheight() // 2) - (ventana_inicio.winfo_height() // 2)
         ventana_inicio.geometry('+{}+{}'.format(x, y))
 
-    def gestionar_reservas_ED(self):
+    def gestionar_reservas_ED(self, id_general: int):
         ventana_reserva_ED = tk.Toplevel(self.ventana)
         ventana_reserva_ED.title("Gestionar reservas ED")
 
@@ -251,7 +259,7 @@ class Interfaz:
                                           command=self.mostrar_espacios_deportivos)
         boton_mostrar_ED.pack()
         boton_agendar_ED= tk.Button(ventana_reserva_ED, text="Agendar espacio deportivo",
-                                           command=self.agendar_espacio_deportivo)
+                                           command=lambda: self.agendar_espacio_deportivo(id_general))
         boton_agendar_ED.pack()
 
         ventana_reserva_ED.geometry("400x250")
@@ -261,6 +269,76 @@ class Interfaz:
         x = (ventana_reserva_ED.winfo_screenwidth() // 2) - (ventana_reserva_ED.winfo_width() // 2)
         y = (ventana_reserva_ED.winfo_screenheight() // 2) - (ventana_reserva_ED.winfo_height() // 2)
         ventana_reserva_ED.geometry('+{}+{}'.format(x, y))
+
+    def mostrar_mis_reservas(self, id_general: int):
+        ventana_mostrar = tk.Toplevel()
+        ventana_mostrar.title("Mis reservas")
+
+        # Crear un Frame para contener el widget Text y el Scrollbar
+        frame = tk.Frame(ventana_mostrar)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear el widget Text
+        text_area = tk.Text(frame, wrap=tk.WORD)
+        text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Crear el Scrollbar y asociarlo al widget Text
+        scrollbar = tk.Scrollbar(frame, command=text_area.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_area.configure(yscrollcommand=scrollbar.set)
+
+        reservas = self.db.mostrar_reservas_general(int(id_general))
+        for e in reservas:
+            cadena_formateada = ""
+            for clave, valor in e.items():
+                cadena_formateada += f"{clave}: {valor}\n"
+            text_area.insert(tk.END, cadena_formateada + "---------------------------------------\n")
+
+        ventana_mostrar.update_idletasks()
+        x = (ventana_mostrar.winfo_screenwidth() // 2) - (ventana_mostrar.winfo_width() // 2)
+        y = (ventana_mostrar.winfo_screenheight() // 2) - (ventana_mostrar.winfo_height() // 2)
+        ventana_mostrar.geometry('+{}+{}'.format(x, y))
+        ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
+        ventana_mostrar.mainloop()
+
+    def eliminar_reserva(self, id_general: int):
+        ventana_ED = tk.Toplevel(self.ventana)
+        ventana_ED.title("Eliminar reserva")
+
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_ED, text="Id reserva:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_ED)
+        entrada_id.pack()
+
+        label_tipo = tk.Label(ventana_ED, text="Tipo de reserva(ED, Instructor o Equipamiento):")
+        label_tipo.pack()
+        entrada_tipo = tk.Entry(ventana_ED)
+        entrada_tipo.pack()
+
+        def eliminar_reserva():
+            id_reserva = entrada_id.get()
+            tipo_reserva = entrada_tipo.get()
+
+            if id_reserva and tipo_reserva:
+                self.db.eliminar_reserva(int(id_reserva), tipo_reserva)
+                ventana_ED.destroy()
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_ED, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de eliminar
+        boton_eliminar = tk.Button(ventana_ED, text="Eliminar", command=eliminar_reserva)
+        boton_eliminar.pack()
+
+        ventana_ED.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_ED.update_idletasks()
+        x = (ventana_ED.winfo_screenwidth() // 2) - (ventana_ED.winfo_width() // 2)
+        y = (ventana_ED.winfo_screenheight() // 2) - (ventana_ED.winfo_height() // 2)
+        ventana_ED.geometry('+{}+{}'.format(x, y))
 
     def mostrar_espacios_deportivos(self):
         ventana_mostrar = tk.Toplevel()
@@ -293,10 +371,58 @@ class Interfaz:
         ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
         ventana_mostrar.mainloop()
 
-    def agendar_espacio_deportivo(self):
-        pass
+    def agendar_espacio_deportivo(self, id_general: int):
+        ventana_agendar = tk.Toplevel(self.ventana)
+        ventana_agendar.title("Agendar ED")
 
-    def gestionar_reservas_instructor(self):
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_agendar, text="Id espacio a reservar:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_agendar)
+        entrada_id.pack()
+
+        label_hora_inicio = tk.Label(ventana_agendar, text="Hora inicio(ej: 1200):")
+        label_hora_inicio.pack()
+        entrada_hora_inicio = tk.Entry(ventana_agendar)
+        entrada_hora_inicio.pack()
+
+        label_hora_fin = tk.Label(ventana_agendar, text="Hora fin(ej: 1400):")
+        label_hora_fin.pack()
+        entrada_hora_fin = tk.Entry(ventana_agendar)
+        entrada_hora_fin.pack()
+
+        def agendar():
+            id = entrada_id.get()
+            inicio = entrada_hora_inicio.get()
+            fin = entrada_hora_fin.get()
+
+            if id and inicio and fin:
+                ventana_agendar.destroy()
+                if GestorReserva.agendar_espacio_deportivo(id_general, int(id), int(inicio), int(fin), self.db):
+                    mensaje_agendado = tk.Label(self.ventana, text="Espacio deportivo agendado con éxito!.", fg="blue")
+                    mensaje_agendado.pack()
+                else:
+                    mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
+                    mensaje_no_coincide.pack()
+
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_agendar, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de registro
+        boton_agendar = tk.Button(ventana_agendar, text="Agendar", command=agendar)
+        boton_agendar.pack()
+
+        ventana_agendar.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_agendar.update_idletasks()
+        x = (ventana_agendar.winfo_screenwidth() // 2) - (ventana_agendar.winfo_width() // 2)
+        y = (ventana_agendar.winfo_screenheight() // 2) - (ventana_agendar.winfo_height() // 2)
+        ventana_agendar.geometry('+{}+{}'.format(x, y))
+
+    def gestionar_reservas_instructor(self, id_general: int):
         ventana_reserva_instructor = tk.Toplevel(self.ventana)
         ventana_reserva_instructor.title("Gestionar reservas ED")
 
@@ -304,7 +430,7 @@ class Interfaz:
                                      command=self.mostrar_instructores)
         boton_mostrar_instructor.pack()
         boton_agendar_instructor = tk.Button(ventana_reserva_instructor, text="Agendar instructor",
-                                     command=self.agendar_instructor)
+                                     command= lambda: self.agendar_instructor(id_general))
         boton_agendar_instructor.pack()
 
         ventana_reserva_instructor.geometry("400x250")
@@ -346,10 +472,58 @@ class Interfaz:
         ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
         ventana_mostrar.mainloop()
 
-    def agendar_instructor(self):
-        pass
+    def agendar_instructor(self, id_general: int):
+        ventana_agendar = tk.Toplevel(self.ventana)
+        ventana_agendar.title("Agendar instructor")
 
-    def gestionar_reservas_equipamiento(self):
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_agendar, text="Id instructor a reservar:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_agendar)
+        entrada_id.pack()
+
+        label_hora_inicio = tk.Label(ventana_agendar, text="Hora inicio(ej: 1200):")
+        label_hora_inicio.pack()
+        entrada_hora_inicio = tk.Entry(ventana_agendar)
+        entrada_hora_inicio.pack()
+
+        label_hora_fin = tk.Label(ventana_agendar, text="Hora fin(ej: 1400):")
+        label_hora_fin.pack()
+        entrada_hora_fin = tk.Entry(ventana_agendar)
+        entrada_hora_fin.pack()
+
+        def agendar():
+            id = entrada_id.get()
+            inicio = entrada_hora_inicio.get()
+            fin = entrada_hora_fin.get()
+
+            if id and inicio and fin:
+                ventana_agendar.destroy()
+                if GestorReserva.agendar_instructor(id_general, int(id), int(inicio), int(fin), self.db):
+                    mensaje_agendado = tk.Label(self.ventana, text="Instructor agendado con éxito!.", fg="blue")
+                    mensaje_agendado.pack()
+                else:
+                    mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
+                    mensaje_no_coincide.pack()
+
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_agendar, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de registro
+        boton_agendar = tk.Button(ventana_agendar, text="Agendar", command=agendar)
+        boton_agendar.pack()
+
+        ventana_agendar.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_agendar.update_idletasks()
+        x = (ventana_agendar.winfo_screenwidth() // 2) - (ventana_agendar.winfo_width() // 2)
+        y = (ventana_agendar.winfo_screenheight() // 2) - (ventana_agendar.winfo_height() // 2)
+        ventana_agendar.geometry('+{}+{}'.format(x, y))
+
+    def gestionar_reservas_equipamiento(self, id_general: int):
         ventana_reserva_equipo = tk.Toplevel(self.ventana)
         ventana_reserva_equipo.title("Gestionar reservas ED")
 
@@ -357,7 +531,7 @@ class Interfaz:
                                      command=self.mostrar_equipamiento)
         boton_mostrar_equipo.pack()
         boton_agendar_equipo = tk.Button(ventana_reserva_equipo, text="Agendar equipamiento",
-                                     command=self.agendar_equipamiento)
+                                     command= lambda: self.agendar_equipamiento(id_general))
         boton_agendar_equipo.pack()
 
         ventana_reserva_equipo.geometry("400x250")
@@ -369,10 +543,86 @@ class Interfaz:
         ventana_reserva_equipo.geometry('+{}+{}'.format(x, y))
 
     def mostrar_equipamiento(self):
-        pass
+        ventana_mostrar = tk.Toplevel()
+        ventana_mostrar.title("Equipamientos")
 
-    def agendar_equipamiento(self):
-        pass
+        # Crear un Frame para contener el widget Text y el Scrollbar
+        frame = tk.Frame(ventana_mostrar)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear el widget Text
+        text_area = tk.Text(frame, wrap=tk.WORD)
+        text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Crear el Scrollbar y asociarlo al widget Text
+        scrollbar = tk.Scrollbar(frame, command=text_area.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_area.configure(yscrollcommand=scrollbar.set)
+
+        equipamiento = GestorReserva.mostrar_equipamiento()
+        for e in equipamiento:
+            cadena_formateada = ""
+            for clave, valor in e.items():
+                cadena_formateada += f"{clave}: {valor}\n"
+            text_area.insert(tk.END, cadena_formateada + "---------------------------------------\n")
+
+        ventana_mostrar.update_idletasks()
+        x = (ventana_mostrar.winfo_screenwidth() // 2) - (ventana_mostrar.winfo_width() // 2)
+        y = (ventana_mostrar.winfo_screenheight() // 2) - (ventana_mostrar.winfo_height() // 2)
+        ventana_mostrar.geometry('+{}+{}'.format(x, y))
+        ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
+        ventana_mostrar.mainloop()
+
+    def agendar_equipamiento(self, id_general: int):
+        ventana_agendar = tk.Toplevel(self.ventana)
+        ventana_agendar.title("Agendar Equipamiento")
+
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_agendar, text="Id equipamiento a reservar:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_agendar)
+        entrada_id.pack()
+
+        label_hora_inicio = tk.Label(ventana_agendar, text="Hora inicio(ej: 1200):")
+        label_hora_inicio.pack()
+        entrada_hora_inicio = tk.Entry(ventana_agendar)
+        entrada_hora_inicio.pack()
+
+        label_hora_fin = tk.Label(ventana_agendar, text="Hora fin(ej: 1400):")
+        label_hora_fin.pack()
+        entrada_hora_fin = tk.Entry(ventana_agendar)
+        entrada_hora_fin.pack()
+
+        def agendar():
+            id = entrada_id.get()
+            inicio = entrada_hora_inicio.get()
+            fin = entrada_hora_fin.get()
+
+            if id and inicio and fin:
+                ventana_agendar.destroy()
+                if GestorReserva.agendar_equipamiento(id_general, int(id), int(inicio), int(fin), self.db):
+                    mensaje_agendado = tk.Label(self.ventana, text="Equipamiento agendado con éxito!.", fg="blue")
+                    mensaje_agendado.pack()
+                else:
+                    mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
+                    mensaje_no_coincide.pack()
+
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_agendar, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de registro
+        boton_agendar = tk.Button(ventana_agendar, text="Agendar", command=agendar)
+        boton_agendar.pack()
+
+        ventana_agendar.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_agendar.update_idletasks()
+        x = (ventana_agendar.winfo_screenwidth() // 2) - (ventana_agendar.winfo_width() // 2)
+        y = (ventana_agendar.winfo_screenheight() // 2) - (ventana_agendar.winfo_height() // 2)
+        ventana_agendar.geometry('+{}+{}'.format(x, y))
 
     def registrarse_administrativo(self):
         ventana_registro = tk.Toplevel(self.ventana)

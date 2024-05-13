@@ -4,6 +4,7 @@ from General import General
 from Almacen_info import AlmacenInfo
 from Espacio_deportivo import EspacioDeportivo
 from Instructor import Instructor
+from Equipamiento import Equipamiento
 
 class DB:
     def __init__(self, host, user, password, database):
@@ -155,3 +156,158 @@ class DB:
 
         except pymysql.Error as error:
             print("Error al obtener instructores:", error)
+
+    def obtener_equipamientos(self):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "SELECT * FROM Equipamientos"
+            cursor.execute(sql)
+
+            for row in cursor.fetchall():
+                id_equipo, nombre, cantidad = row
+                equipamiento = Equipamiento(id_equipo, nombre, cantidad)
+                AlmacenInfo.Equipamientos.append(equipamiento)
+
+        except pymysql.Error as error:
+            print("Error al obtener equipamientos:", error)
+
+    def agendar_reserva_ED(self, id_general: int, id_espacio: int, hora_inicio: int, hora_fin: int):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = ("INSERT INTO Reservas_ED (id_reserva, hora_inicio, hora_fin) "
+                   "VALUES (%s, %s, %s)")
+            cursor.execute(sql, (id_espacio, hora_inicio, hora_fin))
+
+            self.connection.commit()
+
+            print("Espacio deportivo agendado exitosamente.")
+
+            cursor_ = self.connection.cursor()
+
+            sql_ = ("INSERT INTO Historial_reservas_ED (id_general, id_reserva) "
+                   "VALUES (%s, %s)")
+            cursor_.execute(sql_, (id_general, id_espacio))
+
+            self.connection.commit()
+
+        except pymysql.Error as error:
+            print("Error al agendar espacio deportivo:", error)
+
+    def agendar_reserva_instructor(self, id_general: int, id_instructor: int, hora_inicio: int, hora_fin: int):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = ("INSERT INTO Reservas_instructor (id_reserva, hora_inicio, hora_fin) "
+                   "VALUES (%s, %s, %s)")
+            cursor.execute(sql, (id_instructor, hora_inicio, hora_fin))
+
+            self.connection.commit()
+
+            print("Instructor agendado exitosamente.")
+
+            cursor_ = self.connection.cursor()
+
+            sql_ = ("INSERT INTO Historial_reservas_instructor (id_general, id_reserva) "
+                   "VALUES (%s, %s)")
+            cursor_.execute(sql_, (id_general, id_instructor))
+
+            self.connection.commit()
+
+        except pymysql.Error as error:
+            print("Error al agendar instructor:", error)
+
+    def agendar_reserva_equipamiento(self, id_general: int, id_equipamiento: int, hora_inicio: int, hora_fin: int):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = ("INSERT INTO Reservas_equipamiento (id_reserva, hora_inicio, hora_fin) "
+                   "VALUES (%s, %s, %s)")
+            cursor.execute(sql, (id_equipamiento, hora_inicio, hora_fin))
+
+            self.connection.commit()
+
+            print("Equipamiento agendado exitosamente.")
+
+            cursor_ = self.connection.cursor()
+
+            sql_ = ("INSERT INTO Historial_reservas_equipamiento (id_general, id_reserva) "
+                   "VALUES (%s, %s)")
+            cursor_.execute(sql_, (id_general, id_equipamiento))
+
+            self.connection.commit()
+
+        except pymysql.Error as error:
+            print("Error al agendar equipamiento:", error)
+
+    def mostrar_reservas_general(self, id_general: int):
+        reservas = []
+        try:
+            # reservas de ED
+            cursor = self.connection.cursor()
+
+            sql = "select * from Historial_reservas_ED where id_general = %s;"
+            cursor.execute(sql, (id_general,))
+
+            for row in cursor.fetchall():
+                id_general, id_reserva = row
+                reserva = {"id_reserva": id_reserva, "tipo": "Espacio deportivo"}
+                reservas.append(reserva)
+
+            # reservas de instructores
+            cursor2 = self.connection.cursor()
+
+            sql2 = "select * from Historial_reservas_instructor where id_general = %s;"
+            cursor2.execute(sql2, (id_general,))
+
+            for row in cursor2.fetchall():
+                id_general, id_reserva = row
+                reserva = {"id_reserva": id_reserva, "tipo": "Instructor"}
+                reservas.append(reserva)
+
+            # reservas de equipamientos
+            cursor3 = self.connection.cursor()
+
+            sql3 = "select * from Historial_reservas_equipamiento where id_general = %s;"
+            cursor3.execute(sql3, (id_general,))
+
+            for row in cursor3.fetchall():
+                id_general, id_reserva = row
+                reserva = {"id_reserva": id_reserva, "tipo": "Equipamiento"}
+                reservas.append(reserva)
+
+            return reservas
+
+        except pymysql.Error as error:
+            print("Error al obtener equipamientos:", error)
+
+    def eliminar_reserva(self, id_reserva: int, tipo_reserva: str):
+        try:
+            cursor = self.connection.cursor()
+
+            # Busca y elimina la reserva del historial correspondiente
+            if tipo_reserva == "ED":
+                sql_historial = "DELETE FROM Historial_reservas_ED WHERE id_reserva = %s;"
+            elif tipo_reserva == "Instructor":
+                sql_historial = "DELETE FROM Historial_reservas_instructor WHERE id_reserva = %s;"
+            elif tipo_reserva == "Equipamiento":
+                sql_historial = "DELETE FROM Historial_reservas_equipamiento WHERE id_reserva = %s;"
+            cursor.execute(sql_historial, (id_reserva,))
+            self.connection.commit()
+
+            # Busca y elimina la reserva de la tabla de reservas apropiada
+            if tipo_reserva == "ED":
+                sql_reserva = "DELETE FROM Reservas_ED WHERE id_reserva = %s;"
+            elif tipo_reserva == "Instructor":
+                sql_reserva = "DELETE FROM Reservas_instructor WHERE id_reserva = %s;"
+            elif tipo_reserva == "Equipamiento":
+                sql_reserva = "DELETE FROM Reservas_equipamiento WHERE id_reserva = %s;"
+            cursor.execute(sql_reserva, (id_reserva,))
+            self.connection.commit()
+
+            print("Reserva eliminada con éxito.")
+
+        except pymysql.Error as error:
+            print("Error al eliminar reserva:", error)
+
