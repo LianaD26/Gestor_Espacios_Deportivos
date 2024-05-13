@@ -20,7 +20,6 @@ class GestorInicioSesion:
 
     @classmethod
     def iniciar_sesion_administrativo(cls, documento: int, ctr: str):
-        print(AlmacenInfo.Administrativos)
         for i in AlmacenInfo.Administrativos:
             if i.documento == documento and i.contraseña == ctr:
                 return True

@@ -51,6 +51,3 @@ class GestorReserva:
                 return True
         return False
 
-    @classmethod
-    def eliminar_reserva(cls, id_general: int):
-        pass
