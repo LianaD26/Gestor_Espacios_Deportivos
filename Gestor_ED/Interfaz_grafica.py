@@ -157,9 +157,38 @@ class Interfaz:
         y = (ventana_ED.winfo_screenheight() // 2) - (ventana_ED.winfo_height() // 2)
         ventana_ED.geometry('+{}+{}'.format(x, y))
 
-
     def eliminar_espacio_deportivo(self):
-        pass
+        ventana_ED = tk.Toplevel(self.ventana)
+        ventana_ED.title("Eliminar espacio deportivo")
+
+        # Crear los campos de entrada
+        label_id = tk.Label(ventana_ED, text="Id espacio:")
+        label_id.pack()
+        entrada_id = tk.Entry(ventana_ED)
+        entrada_id.pack()
+
+        def eliminar_espacio():
+            id_espacio = entrada_id.get()
+
+            if id_espacio:
+                GestorED.eliminar_espacio_deportivo(int(id_espacio), self.db)
+                ventana_ED.destroy()
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_ED, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de eliminar
+        boton_eliminar = tk.Button(ventana_ED, text="Eliminar", command=eliminar_espacio)
+        boton_eliminar.pack()
+
+        ventana_ED.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_ED.update_idletasks()
+        x = (ventana_ED.winfo_screenwidth() // 2) - (ventana_ED.winfo_width() // 2)
+        y = (ventana_ED.winfo_screenheight() // 2) - (ventana_ED.winfo_height() // 2)
+        ventana_ED.geometry('+{}+{}'.format(x, y))
 
     def iniciar_sesion_general(self):
         ventana_inicio = tk.Toplevel(self.ventana)
@@ -184,14 +213,14 @@ class Interfaz:
                 ventana_inicio.destroy()
                 if GestorInicioSesion.iniciar_sesion_general(int(documento), ctr):
                     self.limpiar_ventana()
-                    boton_agregar_reserva = tk.Button(self.ventana, text="Agregar reserva",
-                                                      command=self.agregar_reserva)
+                    boton_agregar_reserva = tk.Button(self.ventana, text="Reserva espacios deportivos",
+                                                      command=self.gestionar_reservas_ED)
                     boton_agregar_reserva.pack()
-                    boton_mostrar_reservas = tk.Button(self.ventana, text="Eliminar reserva",
-                                                      command=self.mostrar_reservas)
+                    boton_mostrar_reservas = tk.Button(self.ventana, text="Reserva instructor",
+                                                      command=self.gestionar_reservas_instructor)
                     boton_mostrar_reservas.pack()
-                    boton_eliminar_reserva = tk.Button(self.ventana, text="Mostrar reservas",
-                                                      command=self.eliminar_reserva)
+                    boton_eliminar_reserva = tk.Button(self.ventana, text="Reserva equipamiento",
+                                                      command=self.gestionar_reservas_equipamiento)
                     boton_eliminar_reserva.pack()
                 else:
                     mensaje_no_coincide = tk.Label(self.ventana, text="Datos no coinciden.", fg="red")
@@ -214,13 +243,135 @@ class Interfaz:
         y = (ventana_inicio.winfo_screenheight() // 2) - (ventana_inicio.winfo_height() // 2)
         ventana_inicio.geometry('+{}+{}'.format(x, y))
 
-    def agregar_reserva(self):
+    def gestionar_reservas_ED(self):
+        ventana_reserva_ED = tk.Toplevel(self.ventana)
+        ventana_reserva_ED.title("Gestionar reservas ED")
+
+        boton_mostrar_ED = tk.Button(ventana_reserva_ED, text="Mostrar espacios deportivos",
+                                          command=self.mostrar_espacios_deportivos)
+        boton_mostrar_ED.pack()
+        boton_agendar_ED= tk.Button(ventana_reserva_ED, text="Agendar espacio deportivo",
+                                           command=self.agendar_espacio_deportivo)
+        boton_agendar_ED.pack()
+
+        ventana_reserva_ED.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_reserva_ED.update_idletasks()
+        x = (ventana_reserva_ED.winfo_screenwidth() // 2) - (ventana_reserva_ED.winfo_width() // 2)
+        y = (ventana_reserva_ED.winfo_screenheight() // 2) - (ventana_reserva_ED.winfo_height() // 2)
+        ventana_reserva_ED.geometry('+{}+{}'.format(x, y))
+
+    def mostrar_espacios_deportivos(self):
+        ventana_mostrar = tk.Toplevel()
+        ventana_mostrar.title("Espacios deportivos")
+
+        # Crear un Frame para contener el widget Text y el Scrollbar
+        frame = tk.Frame(ventana_mostrar)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear el widget Text
+        text_area = tk.Text(frame, wrap=tk.WORD)
+        text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Crear el Scrollbar y asociarlo al widget Text
+        scrollbar = tk.Scrollbar(frame, command=text_area.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_area.configure(yscrollcommand=scrollbar.set)
+
+        espacios = GestorReserva.mostrar_espacios_deportivo()
+        for e in espacios:
+            cadena_formateada = ""
+            for clave, valor in e.items():
+                cadena_formateada += f"{clave}: {valor}\n"
+            text_area.insert(tk.END, cadena_formateada + "---------------------------------------\n")
+
+        ventana_mostrar.update_idletasks()
+        x = (ventana_mostrar.winfo_screenwidth() // 2) - (ventana_mostrar.winfo_width() // 2)
+        y = (ventana_mostrar.winfo_screenheight() // 2) - (ventana_mostrar.winfo_height() // 2)
+        ventana_mostrar.geometry('+{}+{}'.format(x, y))
+        ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
+        ventana_mostrar.mainloop()
+
+    def agendar_espacio_deportivo(self):
         pass
 
-    def eliminar_reserva(self):
+    def gestionar_reservas_instructor(self):
+        ventana_reserva_instructor = tk.Toplevel(self.ventana)
+        ventana_reserva_instructor.title("Gestionar reservas ED")
+
+        boton_mostrar_instructor = tk.Button(ventana_reserva_instructor, text="Mostrar instructores",
+                                     command=self.mostrar_instructores)
+        boton_mostrar_instructor.pack()
+        boton_agendar_instructor = tk.Button(ventana_reserva_instructor, text="Agendar instructor",
+                                     command=self.agendar_instructor)
+        boton_agendar_instructor.pack()
+
+        ventana_reserva_instructor.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_reserva_instructor.update_idletasks()
+        x = (ventana_reserva_instructor.winfo_screenwidth() // 2) - (ventana_reserva_instructor.winfo_width() // 2)
+        y = (ventana_reserva_instructor.winfo_screenheight() // 2) - (ventana_reserva_instructor.winfo_height() // 2)
+        ventana_reserva_instructor.geometry('+{}+{}'.format(x, y))
+
+    def mostrar_instructores(self):
+        ventana_mostrar = tk.Toplevel()
+        ventana_mostrar.title("Instructores")
+
+        # Crear un Frame para contener el widget Text y el Scrollbar
+        frame = tk.Frame(ventana_mostrar)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear el widget Text
+        text_area = tk.Text(frame, wrap=tk.WORD)
+        text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Crear el Scrollbar y asociarlo al widget Text
+        scrollbar = tk.Scrollbar(frame, command=text_area.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_area.configure(yscrollcommand=scrollbar.set)
+
+        espacios = GestorReserva.mostrar_instructores()
+        for e in espacios:
+            cadena_formateada = ""
+            for clave, valor in e.items():
+                cadena_formateada += f"{clave}: {valor}\n"
+            text_area.insert(tk.END, cadena_formateada + "---------------------------------------\n")
+
+        ventana_mostrar.update_idletasks()
+        x = (ventana_mostrar.winfo_screenwidth() // 2) - (ventana_mostrar.winfo_width() // 2)
+        y = (ventana_mostrar.winfo_screenheight() // 2) - (ventana_mostrar.winfo_height() // 2)
+        ventana_mostrar.geometry('+{}+{}'.format(x, y))
+        ventana_mostrar.geometry("700x400")  # Aumentar la altura de la ventana
+        ventana_mostrar.mainloop()
+
+    def agendar_instructor(self):
         pass
 
-    def mostrar_reservas(self):
+    def gestionar_reservas_equipamiento(self):
+        ventana_reserva_equipo = tk.Toplevel(self.ventana)
+        ventana_reserva_equipo.title("Gestionar reservas ED")
+
+        boton_mostrar_equipo = tk.Button(ventana_reserva_equipo, text="Mostrar equipamientos",
+                                     command=self.mostrar_equipamiento)
+        boton_mostrar_equipo.pack()
+        boton_agendar_equipo = tk.Button(ventana_reserva_equipo, text="Agendar equipamiento",
+                                     command=self.agendar_equipamiento)
+        boton_agendar_equipo.pack()
+
+        ventana_reserva_equipo.geometry("400x250")
+
+        # Centrar la ventana en la pantalla
+        ventana_reserva_equipo.update_idletasks()
+        x = (ventana_reserva_equipo.winfo_screenwidth() // 2) - (ventana_reserva_equipo.winfo_width() // 2)
+        y = (ventana_reserva_equipo.winfo_screenheight() // 2) - (ventana_reserva_equipo.winfo_height() // 2)
+        ventana_reserva_equipo.geometry('+{}+{}'.format(x, y))
+
+    def mostrar_equipamiento(self):
+        pass
+
+    def agendar_equipamiento(self):
         pass
 
     def registrarse_administrativo(self):

@@ -3,6 +3,7 @@ from Administrativo import Administrativo
 from General import General
 from Almacen_info import AlmacenInfo
 from Espacio_deportivo import EspacioDeportivo
+from Instructor import Instructor
 
 class DB:
     def __init__(self, host, user, password, database):
@@ -81,6 +82,20 @@ class DB:
         except pymysql.Error as error:
             print("Error al registrar espacio deportivo:", error)
 
+    def eliminar_espacio_deportivo(self, espacio_deportivo: EspacioDeportivo):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "DELETE FROM Espacios_deportivos WHERE id_espacio = %s"
+            cursor.execute(sql, espacio_deportivo.id)
+
+            self.connection.commit()
+
+            print("Espacio deportivo eliminado exitosamente.")
+
+        except pymysql.Error as error:
+            print("Error al eliminar espacio deportivo:", error)
+
     def obtener_administrativos(self):
         try:
             cursor = self.connection.cursor()
@@ -125,3 +140,18 @@ class DB:
 
         except pymysql.Error as error:
             print("Error al obtener espacios deportivos:", error)
+
+    def obtener_instructores(self):
+        try:
+            cursor = self.connection.cursor()
+
+            sql = "SELECT * FROM Instructores"
+            cursor.execute(sql)
+
+            for row in cursor.fetchall():
+                documento, nombre, apellido, correo, contraseña, espacio_deportivo = row
+                instructor = Instructor(documento, nombre, apellido, correo, contraseña, espacio_deportivo)
+                AlmacenInfo.Instructores.append(instructor)
+
+        except pymysql.Error as error:
+            print("Error al obtener instructores:", error)
