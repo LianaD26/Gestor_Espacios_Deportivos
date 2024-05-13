@@ -2,7 +2,8 @@ import tkinter as tk
 from Gestor_inicio_sesion import GestorInicioSesion
 
 class Interfaz:
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         self.ventana = tk.Tk()
         self.ventana.title("Inicio de Sesión")
         self.ventana.geometry("300x200")
@@ -55,7 +56,7 @@ class Interfaz:
 
     def iniciar_sesion_administrativo(self):
         print("Iniciar sesión como administrativo...")
-        #GestorInicioSesion.iniciar_sesion_administrativo()
+        GestorInicioSesion.iniciar_sesion_administrativo()
 
     def iniciar_sesion_general(self):
         print("Iniciar sesión como general...")
@@ -63,7 +64,54 @@ class Interfaz:
 
     def registrarse_administrativo(self):
         print("Registrarse como administrativo...")
-        GestorInicioSesion.registrar_administrativo()
+        ventana_registro = tk.Toplevel(self.ventana)
+        ventana_registro.title("Registro de Administrador")
+
+        # Crear los campos de entrada
+        label_documento = tk.Label(ventana_registro, text="Documento de Identidad:")
+        label_documento.pack()
+        entrada_documento = tk.Entry(ventana_registro)
+        entrada_documento.pack()
+
+        label_nombre = tk.Label(ventana_registro, text="Nombre:")
+        label_nombre.pack()
+        entrada_nombre = tk.Entry(ventana_registro)
+        entrada_nombre.pack()
+
+        label_apellido = tk.Label(ventana_registro, text="Apellido:")
+        label_apellido.pack()
+        entrada_apellido = tk.Entry(ventana_registro)
+        entrada_apellido.pack()
+
+        label_correo= tk.Label(ventana_registro, text="Correo:")
+        label_correo.pack()
+        entrada_correo = tk.Entry(ventana_registro)
+        entrada_correo.pack()
+
+        label_contr = tk.Label(ventana_registro, text="Contraseña:")
+        label_contr.pack()
+        entrada_contr = tk.Entry(ventana_registro)
+        entrada_contr.pack()
+
+        # Validar y registrar al Administrador
+        def registrar_administrador():
+            nombre = entrada_nombre.get()
+            documento = entrada_documento.get()
+            apellido = entrada_apellido.get()
+            correo = entrada_correo.get()
+            ctr = entrada_contr.get()
+
+            if nombre and documento and apellido and correo and ctr:
+                GestorInicioSesion.registrar_administrativo(int(documento), nombre, apellido, correo, ctr, self.db)
+                ventana_registro.destroy()
+            else:
+                # Mostrar un mensaje de error si los campos están vacíos
+                mensaje_error = tk.Label(ventana_registro, text="Por favor, complete todos los campos.", fg="red")
+                mensaje_error.pack()
+
+        # Crear el botón de registro
+        boton_registrar = tk.Button(ventana_registro, text="Registrar", command=registrar_administrador)
+        boton_registrar.pack()
 
     def registrarse_general(self):
         print("Registrarse como general...")

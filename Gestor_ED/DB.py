@@ -1,4 +1,5 @@
 import pymysql
+from Administrativo import Administrativo
 
 class DB:
     def __init__(self, host, user, password, database):
@@ -30,12 +31,14 @@ class DB:
             self.connection.close()
             print("Conexión cerrada")
 
-    def registrar_administrativo(self, nombre, apellido):
+    def registrar_administrativo(self, admin: Administrativo):
+        # documento, nombre, apellido, correo, contraseña
         try:
             cursor = self.connection.cursor()
 
-            sql = "INSERT INTO administrativos (nombre, apellido) VALUES (%s, %s)"
-            cursor.execute(sql, (nombre, apellido))
+            sql = ("INSERT INTO Administrativos (documento, nombre, apellido, correo, contraseña) "
+                   "VALUES (%s, %s, %s, %s, %s)")
+            cursor.execute(sql, (admin.documento, admin.nombre, admin.apellido, admin.correo, admin.contraseña))
 
             self.connection.commit()
 

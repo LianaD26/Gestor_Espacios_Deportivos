@@ -1,4 +1,5 @@
 from DB import DB
+from Administrativo import Administrativo
 
 class GestorInicioSesion:
     @classmethod
@@ -10,9 +11,12 @@ class GestorInicioSesion:
         print("Iniciar sesión como general...")
 
     @classmethod
-    def registrar_administrativo(cls):
+    def registrar_administrativo(cls, documento: int, nombre: str, apellido: str, correo: str, contraseña: str, db):
         print("Registrarse como administrativo...")
-        #DB.registrar_administrativo()
+        print(documento, nombre, apellido, correo, contraseña)
+        admin = Administrativo(documento, nombre, apellido, correo, contraseña)
+        #db = DB(host="localhost", user="User1", password="passw2024", database="GestorED")
+        db.registrar_administrativo(admin)
 
     @classmethod
     def registrar_general(cls):
