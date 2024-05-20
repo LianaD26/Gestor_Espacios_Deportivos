@@ -1,11 +1,11 @@
-#from DB import DB
+from DB import DB
 import sqlite3
 from Interfaz_grafica import Interfaz
 from Almacen_info import AlmacenInfo
 
-#db = DB(host="localhost", user="User1", password="passw2024", database="GestorED")
-db = sqlite3.connect('C:\Users\emanu\OneDrive\Escritorio\GestorED')
+
 # si la conexión a la base de datos se da, entonces ejecuta el programa
+db = DB('app.db')
 if db.conectar():
     # crear los objetos de toda la información de la base de datos
     db.obtener_administrativos()
